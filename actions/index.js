@@ -14,7 +14,7 @@ exports.startMenu = (bot, chatId) => {
     bot.sendMessage(chatId, "به ربات ترجمه خوش اومدی!", inlineKeyboard)
 }
 
-exports.homeMenu = (bot, chatId, messageId) => {
+exports.homeMenu = (bot, chatId, messageId = null) => {
     let inlineKeyboard = {
         reply_markup: {
             inline_keyboard: [
@@ -26,12 +26,15 @@ exports.homeMenu = (bot, chatId, messageId) => {
             ]
         }
     };
-
-    bot.editMessageText("لطفا سرویس خود را انتخاب کنید!", {
-        chat_id: chatId,
-        message_id: messageId,
-        reply_markup: inlineKeyboard.reply_markup
-    })
+    if (messageId === null) {
+        bot.sendMessage(chatId, "لطفا سرویس خود را انتخاب کنید!", inlineKeyboard)
+    } else {
+        bot.editMessageText("لطفا سرویس خود را انتخاب کنید!", {
+            chat_id: chatId,
+            message_id: messageId,
+            reply_markup: inlineKeyboard.reply_markup
+        })
+    }
 }
 
 exports.sendTranslateKeyboard = (bot, chatId, messageId, command) => {
@@ -53,7 +56,7 @@ exports.sendTranslateKeyboard = (bot, chatId, messageId, command) => {
             ]
         }
     }
-    
+
     bot.editMessageText("حالا زبانت رو انتخاب کن!", {
         chat_id: chatId,
         message_id: messageId,
@@ -73,10 +76,38 @@ exports.sendLanguage = (bot, chatId, messageId, command) => {
             ]
         }
     }
-    
+
     bot.editMessageText("حالا متنی که میخوای ترجمه بشه رو ارسال کن: ", {
         chat_id: chatId,
         message_id: messageId,
         reply_markup: inlineKeyboard.reply_markup
     })
+}
+
+exports.handleMessage = async (bot, msg) => {
+    let chatId = msg.chat.id
+    let text = msg.text
+    let action = await redis.get(`user:${chatId}:action`)
+    let lan = await redis.get(`user:${chatId}:lan`)
+
+    if (text.startsWith('/')) return this.homeMenu(bot, chatId);
+
+    if (action && lan) {
+        let inlineKeyboard = {
+            reply_markup: {
+                inline_keyboard: [
+                    [
+                        { text: 'بازگشت به منو اصلی', callback_data: 'home' }
+                    ]
+                ]
+            }
+        }
+        //TODO config response
+        if (response?.error) {
+            return bot.sendMessage(chatId, `!! خطا در ترجمه !!`, inlineKeyboard)
+        }
+        bot.sendMessage(chatId, response, inlineKeyboard)
+    } else {
+        this.homeMenu(bot, chatId)
+    }
 }
