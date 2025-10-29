@@ -1,4 +1,5 @@
 let redis = require("./../db/redis")
+let translate = require("./../utils/translate")
 
 exports.startMenu = (bot, chatId) => {
     let inlineKeyboard = {
@@ -102,7 +103,8 @@ exports.handleMessage = async (bot, msg) => {
                 ]
             }
         }
-        //TODO config response
+
+        let response = await translate(text, lan, action)
         if (response?.error) {
             return bot.sendMessage(chatId, `!! خطا در ترجمه !!`, inlineKeyboard)
         }
