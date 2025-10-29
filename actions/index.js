@@ -60,3 +60,23 @@ exports.sendTranslateKeyboard = (bot, chatId, messageId, command) => {
         reply_markup: inlineKeyboard.reply_markup
     })
 }
+
+exports.sendLanguage = (bot, chatId, messageId, command) => {
+    redis.set(`user:${chatId}:lan`, command, "EX", 180)
+
+    let inlineKeyboard = {
+        reply_markup: {
+            inline_keyboard: [
+                [
+                    { text: 'بازگشت به منو اصلی', callback_data: 'home' }
+                ]
+            ]
+        }
+    }
+    
+    bot.editMessageText("حالا متنی که میخوای ترجمه بشه رو ارسال کن: ", {
+        chat_id: chatId,
+        message_id: messageId,
+        reply_markup: inlineKeyboard.reply_markup
+    })
+}
