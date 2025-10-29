@@ -27,6 +27,12 @@ exports.homeMenu = (bot, chatId, messageId = null) => {
             ]
         }
     };
+
+    let action = redis.get(`user:${chatId}:action`)
+    let lan = redis.get(`user:${chatId}:lan`)
+    if (action) redis.del(`user:${chatId}:action`)
+    if (lan) redis.del(`user:${chatId}:lan`)
+
     if (messageId === null) {
         bot.sendMessage(chatId, "لطفا سرویس خود را انتخاب کنید!", inlineKeyboard)
     } else {
@@ -91,7 +97,10 @@ exports.handleMessage = async (bot, msg) => {
     let action = await redis.get(`user:${chatId}:action`)
     let lan = await redis.get(`user:${chatId}:lan`)
 
-    if (text.startsWith('/')) return this.homeMenu(bot, chatId);
+    if (text.startsWith('/')) {
+        if (!/\/start/.test(text)) return this.homeMenu(bot, chatId);
+        return;
+    }
 
     if (action && lan) {
         let inlineKeyboard = {
